@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(tree:*)",
+      "Bash(powershell -Command \"cd ''C:\\Users\\nlsch\\AutoPrintFarm-Hub''; pio run --target upload\")"
     ],
     "deny": [],
     "ask": []

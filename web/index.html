@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoPrintFarm Hub - WiFi Provisioning</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+        }
+
+        h1 {
+            text-align: center;
+            color: #00d4ff;
+            margin-bottom: 30px;
+        }
+
+        .status-section {
+            background: #16213e;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .status-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .status-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
+            background: #666;
+        }
+
+        .status-indicator.connected {
+            background: #00ff88;
+            box-shadow: 0 0 10px #00ff88;
+        }
+
+        .status-indicator.connecting {
+            background: #ffaa00;
+            animation: pulse 1s infinite;
+        }
+
+        .status-indicator.error {
+            background: #ff4444;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-label {
+            color: #888;
+            width: 100px;
+        }
+
+        .status-value {
+            color: #fff;
+            flex: 1;
+        }
+
+        .form-section {
+            background: #16213e;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #888;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #333;
+            border-radius: 6px;
+            background: #0f0f23;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 10px;
+        }
+
+        button:last-child {
+            margin-bottom: 0;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #00d4ff;
+            color: #000;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #00b8e6;
+        }
+
+        .btn-success {
+            background: #00ff88;
+            color: #000;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #00dd77;
+        }
+
+        .btn-danger {
+            background: #ff4444;
+            color: #fff;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #dd3333;
+        }
+
+        .btn-secondary {
+            background: #444;
+            color: #fff;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #555;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .log-section {
+            background: #0f0f23;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            color: #888;
+        }
+
+        .log-entry.info {
+            color: #00d4ff;
+        }
+
+        .log-entry.success {
+            color: #00ff88;
+        }
+
+        .log-entry.error {
+            color: #ff4444;
+        }
+
+        .info-text {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>AutoPrintFarm Hub</h1>
+
+    <!-- Status Section -->
+    <div class="status-section">
+        <div class="status-row">
+            <div class="status-indicator" id="bleIndicator"></div>
+            <span class="status-label">Bluetooth:</span>
+            <span class="status-value" id="bleStatus">Not Connected</span>
+        </div>
+        <div class="status-row">
+            <div class="status-indicator" id="wifiIndicator"></div>
+            <span class="status-label">WiFi:</span>
+            <span class="status-value" id="wifiStatus">Unknown</span>
+        </div>
+    </div>
+
+    <!-- Connect Button (shown when not connected to BLE) -->
+    <div id="connectSection">
+        <button class="btn-primary" id="connectBtn" onclick="connectToBLE()">
+            Connect to Hub
+        </button>
+        <p class="info-text">Make sure your AutoPrintFarm Hub is powered on</p>
+    </div>
+
+    <!-- WiFi Configuration (shown after BLE connection) -->
+    <div id="wifiSection" class="hidden">
+        <div class="form-section">
+            <div class="form-group">
+                <label for="ssid">WiFi Network Name (SSID)</label>
+                <input type="text" id="ssid" placeholder="Enter your WiFi name" maxlength="32">
+            </div>
+            <div class="form-group">
+                <label for="password">WiFi Password</label>
+                <input type="password" id="password" placeholder="Enter your WiFi password" maxlength="64">
+            </div>
+            <button class="btn-success" id="saveConnectBtn" onclick="saveAndConnect()">
+                Connect to WiFi
+            </button>
+        </div>
+
+        <button class="btn-danger" id="disconnectWifiBtn" onclick="disconnectWifi()">
+            Disconnect from WiFi
+        </button>
+
+        <button class="btn-secondary" id="disconnectBleBtn" onclick="disconnectBLE()">
+            Disconnect from Hub
+        </button>
+    </div>
+
+    <!-- Log Output -->
+    <div class="log-section" id="logSection">
+        <div class="log-entry">Ready. Click "Connect to Hub" to begin.</div>
+    </div>
+
+    <script src="provisioning.js"></script>
+</body>
+</html>
