@@ -94,7 +94,7 @@ void BLEProvisioning::setupBLE(const char* deviceName) {
     // Configure advertising
     NimBLEAdvertising* pAdvertising = NimBLEDevice::getAdvertising();
     pAdvertising->addServiceUUID(SERVICE_UUID_WIFI_PROV);
-    pAdvertising->setScanResponse(false);  // Keep it simple
+    pAdvertising->setScanResponse(true);  // Enable scan response to fit full device name
 
     _bleInitialized = true;
     Serial.println("[BLE] Service started");
